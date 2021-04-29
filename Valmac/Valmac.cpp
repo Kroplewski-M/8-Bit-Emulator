@@ -17,7 +17,22 @@ struct Valmac
 	
 	////4K memory in total
 	// NB 1K is 1024 bytes (not 1000)
-	//uint8_t memory[4096];
+	uint8_t memory[MEMORY_SIZE];
+
+	inline unsigned char get_mem(unsigned int p_adress)
+	{
+		_ASSERT(p_adress < MEMORY_SIZE);
+		return memory[p_adress];
+	}
+	inline void set_mem(unsigned int p_address, unsigned char p_value)
+	{
+		_ASSERT(p_address < MEMORY_SIZE);
+		memory[p_address] = p_value;
+	}
+	inline void clear_memory(void)
+	{
+		memset(memory, 0, MEMORY_SIZE);
+	}
 
 	// CPU registers :  15, 8 - bit general purpose registers named V0, V1 up to VE.
 	// The 16th register, Vf, is used  for the ‘carry flag
@@ -38,7 +53,7 @@ struct Valmac
 	//This can easily be implemented using an array that hold the pixel state(1 or 0) :
 	uint8_t gfx[64 * 32];
 
-	//no Interupts or hardware registers.
+	//no Interrupts or hardware registers.
 	//but there are two timer registers that count at 60 Hz.
 	//When set above zero they will count down to zero.
 	uint8_t delay_timer;
@@ -72,12 +87,13 @@ struct Valmac
 		opcode = 0;      // Reset current opcode	
 		I = 0;      // Reset index register
 		SP = 0;      // Reset stack pointer
-
+		 
 		// Clear display	
 		// Clear stack
 		// Clear registers V0-VF
 		// Clear keypad
 		// Clear memory
+		clear_memory();
 
 		//// Load font set
 		//for (int i = ; i < 80; ++i)
@@ -86,10 +102,67 @@ struct Valmac
 		// Reset timers	
 	}
 
+	uint16_t MasterMind[3] =
+	{
+		0xff18, //ping
+		0xc208, //CXNN[2] is 0-7
+		0xc308
+	};
+
+	bool load_program(uint16_t* pProgram, size_t bufferSize)
+	{
+		//Read a program from a file
+		std::memcpy(pProgram, memory + PC, 3);
+
+		return true;
+	}
+
+	uint16_t getProgramOpcode()
+	{
+		_ASSERT((PC & 1) == 0);  //PC is not 0DD
+		_ASSERT((PC <= MEMORY_SIZE - sizeof(opcode))); //PC is within memory
+
+		uint16_t l_opcode = memory[PC] << 8 | memory[PC + 1];
+		return l_opcode;
+	}
+
+	inline void step_PC()
+	{
+		PC += 2; //PC cannot be odd
+		_ASSERT(PC < MEMORY_SIZE - sizeof(opcode));
+	}
+
 	void emulateCycle()		//run c clock tick
 	{
 		// Fetch Opcode
+		opcode = getProgramOpcode();
 		// Decode Opcode
+		switch (opcode & 0xF000)
+		{ 
+		case 0x0000:
+			if (opcode == 0)
+				break;
+		case 0x1000:				//opcode == 0x1A08
+			PC = opcode & 0xFFF;	//PC == 0x0A08
+			break;
+		case 0x3000:
+			if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x0FF))
+			{
+				step_PC();
+				step_PC();
+			}
+			else
+				step_PC();   
+			break;
+	
+		case 0xF000: 
+			std::cout << "/7";
+			step_PC();
+			break;
+
+		default:
+			break;
+		}
 		// Execute Opcode
 
 		// Update timers
@@ -97,7 +170,7 @@ struct Valmac
 };
 
 //#include   // OpenGL graphics and input
-//#include "Valmac.h" // Your cpu core implementation
+//#include "Valmac.h" // Your CPU core implementation
 
 Valmac myValmac;
 
