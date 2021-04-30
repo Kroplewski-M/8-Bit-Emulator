@@ -1,2 +1,2 @@
 ﻿  Valmac.cpp
-  Valmac.vcxproj -> C:\Users\user\source\repos\Valmac\x64\Debug\Valmac.exe
+C:\Users\user\source\repos\Valmac\Valmac\Valmac.cpp : fatal error C1041: cannot open program database 'C:\Users\user\source\repos\Valmac\Valmac\x64\Debug\vc142.pdb'; if multiple CL.EXE write to the same .PDB file, please use /FS
