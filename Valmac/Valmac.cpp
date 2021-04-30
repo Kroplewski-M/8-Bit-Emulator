@@ -3,7 +3,7 @@
 //
 // NB students may be more familiar with uint16_t than unsigned short
 // similarly   may be more familiar with uint8_t  than unsigned char
-//
+
 
 #include <iostream>
 
@@ -112,7 +112,7 @@ struct Valmac
 	bool load_program(uint16_t* pProgram, size_t bufferSize)
 	{
 		//Read a program from a file
-		std::memcpy(pProgram, memory + PC, 3);
+		std::memcpy(memory + PC, pProgram , bufferSize * 2);
 
 		return true;
 	}
@@ -122,7 +122,7 @@ struct Valmac
 		_ASSERT((PC & 1) == 0);  //PC is not 0DD
 		_ASSERT((PC <= MEMORY_SIZE - sizeof(opcode))); //PC is within memory
 
-		uint16_t l_opcode = memory[PC] << 8 | memory[PC + 1];
+		uint16_t l_opcode = memory[PC+1] << 8 | memory[PC];
 		return l_opcode;
 	}
 
@@ -141,9 +141,11 @@ struct Valmac
 		{ 
 		case 0x0000:
 			if (opcode == 0)
+				std::cout << "Doing Nothing\n ";
+				step_PC();
 				break;
 		case 0x1000:				//opcode == 0x1A08
-			PC = opcode & 0xFFF;	//PC == 0x0A08
+			PC = opcode & 0xFFF;	//PC == 0x0A08 
 			break;
 		case 0x3000:
 			if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x0FF))
@@ -154,9 +156,18 @@ struct Valmac
 			else
 				step_PC();   
 			break;
-	
+		case 0x5000:
+			if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4])
+			{
+				step_PC();
+				step_PC();
+			}
+			else
+				step_PC();
+			break;
 		case 0xF000: 
-			std::cout << "/7";
+			std::cout << '/7' << std::endl;
+			std::cout << "BEEP\n";
 			step_PC();
 			break;
 
@@ -178,10 +189,19 @@ int main(int argc, char** argv)
 {
 	myValmac.initialize();
 
-	myValmac.emulateCycle();
+	//test program 1
+	myValmac.load_program(myValmac.MasterMind, 3);
+	bool g_bRunning = true;
+
+	while (g_bRunning)
+	{
+		myValmac.emulateCycle();
+		g_bRunning = false;
+	}
 
 
-    std::cout << "Hello 8-bit world!\n";
+    std::cout << "V[0] exit code was: " << myValmac.V[0] << std::endl;
+	std::cout << "End of World\n";
 	system("pause");
 }
 
