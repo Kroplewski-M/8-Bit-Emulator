@@ -106,16 +106,27 @@ struct Valmac
 
 	uint16_t MasterMind[10] =
 	{
-		0xFF18,
-		0x120A,
-		0xc208, //CXNN[2] is 0-7
-		0xff18,
-		0x00EE,
-		0x6412,
-		0x6313,
-		0x5340,
-		0x2206,
-		0xFF18
+		//0xFF18,
+		//0x120A,
+		//0xc208, //CXNN[2] is 0-7
+		//0xff18,
+		//0x00EE,
+		//0x6412,
+		//0x6313,
+		//0x5340,
+		//0x2206,
+		//0xFF18
+		0x6444,
+		0x6501,
+		0x8454,
+		0x0000,
+		0x0000,
+		0x0000,
+		0x0000,
+		0x0000,
+		0x0000,
+		0x0000
+	
 	};
 
 	bool load_program(uint16_t* pProgram, size_t bufferSize)
@@ -152,15 +163,17 @@ struct Valmac
 		switch (opcode & 0xF000)
 		{ 
 		case 0x0000:
-			if (opcode == 0)
+			if (opcode == 0x0000)
 			{
 				std::cout << "Doing Nothing\n ";
 				step_PC();
 			}
-			else if (opcode == 0x00EE);
+			else if ((opcode & 0x00FF) == 0x00FE )
 			{
-				PC = stack[--SP]; 
-				stack[SP] = 0; 
+				SP -= 1;
+				PC = stack[SP];
+				//PC = stack[--SP]; 
+				//stack[SP] = 0; 
 				step_PC();
 			}
 				break;
@@ -181,6 +194,15 @@ struct Valmac
 			else
 				step_PC();   
 			break;
+		case 0x4000:
+			if (V[(opcode & 0x0F00) >> 8] != (opcode & 0x00FF))
+			{
+				step_PC();
+				step_PC();
+			}
+			else
+				step_PC();
+			break;
 		case 0x5000:
 			if (V[(opcode & 0x0F00) >> 8] == V[(opcode & 0x00F0) >> 4])
 			{
@@ -197,6 +219,74 @@ struct Valmac
 		case 0x7000:
 			V[(opcode & 0x0F00) >> 8] += (opcode & 0x00FF);
 			step_PC();
+			break;
+		case 0x8000:
+			switch (opcode & 0x000F)
+			{
+			case 0x0000:
+				V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
+				std::cout << "After: " << (int)V[(opcode & 0x0F00) >> 8];
+				break;
+			case 0x0001:
+				V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x0F00) >> 8] | V[(opcode & 0x00F0) >> 4];
+				break;
+			case 0x0002:
+				V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x0F00) >> 8] & V[(opcode & 0x00F0) >> 4];
+				break;
+			case 0x0003:
+				V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x0F00) >> 8] ^ V[(opcode & 0x00F0) >> 4];
+				break;
+			case 0x0004:
+				std::cout << "Before: " << V[(opcode & 0x0F00) >> 8] << " " << V[0x0F] << std::endl;
+				if (V[(opcode & 0x00F0 >> 4)] > (255 - V[(opcode & 0x0F00) >> 8]))
+					V[0x0F] = 1;
+				else
+					V[0x0F] = 0;
+				V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
+				std::cout << "Result: " << V[(opcode & 0x0F00) >> 8] << " " <<V[0x0F] << std::endl;
+				break;
+			case 0x0005:
+				std::cout << "before: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int) V[0x0F] << std::endl;
+				if (V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4])
+					V[0x0F] = 1;
+				else
+					V[0x0F] = 0;
+				V[(opcode & 0x0F00) >> 8] -= V[(opcode & 0x00F0) >> 4];
+				std::cout << "After: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
+				break;
+			case 0x0006: 
+				std::cout << "Before: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
+				V[0x0F] = V[(opcode & 0x0F00) >> 8] & 0x0001;
+				V[(opcode & 0x0F00) >> 8] >>= 1;
+				std::cout << "After: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
+				break;
+			case 0x0007:
+				std::cout << "Before: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
+				if (V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4])
+					V[0x0F] = 0;
+				else
+					V[0x0F] = 1;
+				V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4] - V[(opcode & 0x0F00) >> 8] ;
+				std::cout << "After: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
+				break;
+			case 0x000E:
+				V[0x0F] = V[(opcode & 0x0F00) >> 8] >> 7;
+				V[(opcode & 0x0F00) >> 8] <<= 1;
+				std::cout << "After: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
+				break;
+			default:
+				break;
+			}
+			step_PC();
+			break;
+		case 0x9000:
+			if (V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4])
+			{
+				step_PC();
+				step_PC();
+			}
+			else
+				step_PC();
 			break;
 		case 0xA000:
 			I = opcode & 0x0FFF;
@@ -233,9 +323,8 @@ int main(int argc, char** argv)
 	while (myValmac.g_bRunning)
 	{
 		myValmac.emulateCycle();
-
 		i++;
-		myValmac.g_bRunning = i < 9;
+		myValmac.g_bRunning = i < 10;
 	}
 
 
