@@ -1,7 +1,7 @@
 // Valmac8.cpp : This file contains the 'main' function. Program execution begins and ends there.
 // Emulation execution is separate, mostly controller by PC.
 
-
+#include <SFML/Graphics.hpp>
 #include <iostream>
 
 #define MEMORY_SIZE	(4096)
@@ -72,13 +72,17 @@ struct Valmac
 
 	//Finally, the HEX based keypad(0x0 - 0xF), you can use an array to store the 
 	//current state of the key.
-	uint8_t key[16];
+	uint8_t keypad[16];
 	/*
 		1	2	3	C
 		4	5	6	D
 		7	8	9	E
 		A	0	B	F
 	*/
+
+	sf::RenderWindow window;
+
+	Valmac() : window(sf::VideoMode(800, 600), "Valmac!") {};
 
 	void initialize()
 	{
@@ -94,6 +98,7 @@ struct Valmac
 		// Clear registers V0-VF
 		std::memset(V, 0, sizeof(V));
 		// Clear keypad
+		memset(keypad, 0, sizeof(keypad));
 		// Clear memory
 		clear_memory();
 
@@ -272,7 +277,7 @@ struct Valmac
 			case 0x000E:
 				V[0x0F] = V[(opcode & 0x0F00) >> 8] >> 7;
 				V[(opcode & 0x0F00) >> 8] <<= 1;
-				std::cout << "After: " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
+				std::cout << "After : " << (int)V[(opcode & 0x0F00) >> 8] << " " << (int)V[0x0F] << std::endl;
 				break;
 			default:
 				break;
@@ -291,6 +296,18 @@ struct Valmac
 		case 0xA000:
 			I = opcode & 0x0FFF;
 			break;
+		case 0xE000:
+			switch (opcode & 0x00FF)
+			{
+			case 0x009E:  
+				break;
+			case 0x00A1:
+				break;
+			default:
+				break;
+			}
+			step_PC();
+			break;
 		case 0xF000: 
 			std::cout << '/7' << std::endl;
 			std::cout << "BEEP\n";
@@ -304,6 +321,127 @@ struct Valmac
 		// Execute Opcode
 
 		// Update timers
+	}
+	void SampleInput()
+	{
+		sf::Event event;
+		static int KeyCount = 0;
+		while (window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+			{
+				window.close();
+			}
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
+		{
+			KeyCount++;
+			keypad[0] = 1;
+		}
+		else
+			keypad[0] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
+		{
+			KeyCount++;
+			keypad[1] = 1;
+		}
+		else
+			keypad[1] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
+		{
+			KeyCount++;
+			keypad[2] = 1;
+		}
+		else
+			keypad[2] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4))
+		{
+			KeyCount++;
+			keypad[3] = 1;
+		}
+		else
+			keypad[3] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5))
+		{
+			KeyCount++;
+			keypad[4] = 1;
+		}
+		else
+			keypad[4] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num6))
+		{
+			KeyCount++;
+			keypad[5] = 1;
+		}
+		else
+			keypad[5] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num7))
+		{
+			KeyCount++;
+			keypad[6] = 1;
+		}
+		else
+			keypad[6] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num8))
+		{
+			KeyCount++;
+			keypad[7] = 1;
+		}
+		else
+			keypad[7] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num9))
+		{
+			KeyCount++;
+			keypad[8] = 1;
+		}
+		else
+			keypad[8] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0))
+		{
+			KeyCount++;
+			keypad[9] = 1;
+		}
+		else
+			keypad[9] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+		{
+			KeyCount++;
+			keypad[10] = 1;
+		}
+		else
+			keypad[10] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
+			keypad[11] = 1;
+		else
+			keypad[11] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
+		{
+			KeyCount++;
+			keypad[12] = 1;
+		}
+		else
+			keypad[12] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+		{
+			KeyCount++;
+			keypad[13] = 1;
+		}
+		else
+			keypad[13] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
+		{
+			KeyCount++;
+			keypad[14] = 1;
+		}
+		else
+			keypad[14] = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::F))
+		{
+			KeyCount++;
+			keypad[15] = 1;
+		}
+		else
+			keypad[15] = 0;
 	}
 };
 
@@ -323,6 +461,7 @@ int main(int argc, char** argv)
 	while (myValmac.g_bRunning)
 	{
 		myValmac.emulateCycle();
+		myValmac.SampleInput();
 		i++;
 		myValmac.g_bRunning = i < 10;
 	}
@@ -330,6 +469,7 @@ int main(int argc, char** argv)
 
     std::cout << "V[0] exit code was: " << myValmac.V[0] << std::endl;
 	std::cout << "End of World\n";
+
 	system("pause");
 }
  
