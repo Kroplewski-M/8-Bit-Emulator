@@ -1,6 +1,8 @@
-﻿  Generating code
-  6 of 25 functions (24.0%) were compiled, the rest were copied from previous compilation.
-    3 functions were new in current compilation
+﻿  Valmac.cpp
+C:\Users\user\source\repos\Valmac\Valmac\Valmac.cpp(321,1): warning C4267: '=': conversion from 'size_t' to 'uint8_t', possible loss of data
+  Generating code
+  1 of 27 functions ( 3.7%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Valmac.vcxproj -> C:\Users\user\source\repos\Valmac\x64\Release\Valmac.exe

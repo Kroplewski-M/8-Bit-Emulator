@@ -34,17 +34,12 @@ struct Valmac
 	}
 
 
-	// CPU registers :  15, 8 - bit general purpose registers named V0, V1 up to VE.
-	// The 16th register, Vf, is used  for the 'carry flag'
+	
 	uint8_t  V[16];
 
-	//There is an Index register I and a program counter (PC) which can have a value from 0x000 to 0xFFF
 	uint16_t I;
 	uint16_t PC;
-	//The systems memory map :
-	// 0x000 - 0x1FF - interpreter (contains font set in emu)
-	// 0x050 - 0x0A0 - Used for the built in 4x5 pixel font set(0 - F)
-	// 0x200 - 0xFFF - Program ROM and work RAM
+
 
 	//The graphics system : There is one instruction that draws sprite to the screen. Drawing is done in XOR mode 
 	//and if a pixel is turned off as a result of drawing, the VF register is set. 
@@ -111,20 +106,10 @@ struct Valmac
 
 	uint16_t MasterMind[10] =
 	{
-		//0xFF18,
-		//0x120A,
-		//0xc208, //CXNN[2] is 0-7
-		//0xff18,
-		//0x00EE,
-		//0x6412,
-		//0x6313,
-		//0x5340,
-		//0x2206,
-		//0xFF18
-		0x6444,
-		0x6501,
-		0x8454,
-		0x0000,
+		0xF40A,
+		0xF000,
+		0xE4A1,
+		0x1202,
 		0x0000,
 		0x0000,
 		0x0000,
@@ -162,7 +147,7 @@ struct Valmac
 		// Fetch Opcode
 		opcode = getProgramOpcode();
 
-		std::cout << "0x" << std::hex << opcode << std::endl;
+		//std::cout << "0x" << std::hex << opcode << std::endl;
 
 		// Decode Opcode
 		switch (opcode & 0xF000)
@@ -300,8 +285,16 @@ struct Valmac
 			switch (opcode & 0x00FF)
 			{
 			case 0x009E:  
+				if (keypad[V[(opcode & 0x0F00) >> 8]])
+				{
+					step_PC();
+				}
 				break;
 			case 0x00A1:
+				if (!keypad[V[(opcode & 0x0F00) >> 8]])
+				{
+					step_PC();
+				}
 				break;
 			default:
 				break;
@@ -311,6 +304,42 @@ struct Valmac
 		case 0xF000: 
 			std::cout << '/7' << std::endl;
 			std::cout << "BEEP\n";
+			switch (opcode & 0x00FF)
+			{
+			case 0x0007:
+				break;
+			case 0x000A:
+				while (!(keypad[0] || keypad[1] || keypad[2] || keypad[3] || keypad[4] || keypad[5] || keypad[6] || keypad[7] || keypad[8]
+					      || keypad[9] || keypad[10] || keypad[11] || keypad[12] || keypad[13] || keypad[14] || keypad[15]))
+				{
+					SampleInput();
+				}
+				for (size_t i = 0; i < 16; i++)
+				{
+					if (keypad[i])
+					{
+						V[(opcode && 0x0F00) >> 8] = i;
+						break;
+					}
+				}
+				break;
+			case 0x0015:
+				break;
+			case 0x00018:
+				break;
+			case 0x001E:
+				break;
+			case 0x00029:
+				break;
+			case 0x0033:
+				break;
+			case 0x00055:
+				break;
+			case 0x00065:
+				break;
+			default:
+				break;
+			}
 			step_PC();
 			break;
 
@@ -326,11 +355,14 @@ struct Valmac
 	{
 		sf::Event event;
 		static int KeyCount = 0;
-		while (window.pollEvent(event))
+		//while (window.isOpen())
 		{
-			if (event.type == sf::Event::Closed)
+			while (window.pollEvent(event))
 			{
-				window.close();
+				if (event.type == sf::Event::Closed)
+				{
+					window.close();
+				}
 			}
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
@@ -453,7 +485,6 @@ Valmac myValmac;
 int main(int argc, char** argv)
 {
 	myValmac.initialize();
-
 	//test program 1
 	myValmac.load_program(myValmac.MasterMind, sizeof(myValmac.MasterMind));
 
