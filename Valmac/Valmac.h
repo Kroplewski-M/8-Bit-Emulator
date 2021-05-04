@@ -18,9 +18,6 @@ public:
 	void emulateCycle();		//run c clock tick
 	void SampleInput();
 
-
-
-
 	bool g_bRunning = true;
 	//The Valmac has around 35 opcodes which are all two bytes long. 
 	uint16_t opcode;
@@ -52,7 +49,6 @@ public:
 		7	8	9	E
 		A	0	B	F
 	*/
-
 
 	sf::RenderWindow window;
 

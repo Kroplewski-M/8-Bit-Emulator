@@ -3,10 +3,10 @@
 #include "iostream"
 
 
-Valmac myValmac;
 
 int main(int argc, char** argv)
 {
+	Valmac myValmac;
 	myValmac.initialize();
 	//test program 1
 	myValmac.load_program(myValmac.MasterMind, sizeof(myValmac.MasterMind));

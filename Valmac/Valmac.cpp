@@ -36,6 +36,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 		SP = 0;      // Reset stack pointer
 
 		// Clear display	
+		window.clear(sf::Color(0,0,0,255));
 		// Clear stack
 		memset(stack, 0, sizeof(stack));
 		// Clear registers V0-VF
@@ -91,13 +92,21 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 				std::cout << "Doing Nothing\n ";
 				step_PC();
 			}
-			else if ((opcode & 0x00FF) == 0x00FE)
+			else if ((opcode & 0x00FF) == 0x00EE)
 			{
 				SP -= 1;
 				PC = stack[SP];
 				//PC = stack[--SP]; 
 				//stack[SP] = 0; 
 				step_PC();
+			}
+			else if ((opcode & 0x00FF) == 0x00FF)
+			{
+				g_bRunning = false;
+			}
+			else if ((opcode & 0x00F0) == 0x00E0)
+			{
+				window.clear(sf::Color(0, 0, 0, 255));
 			}
 			break;
 		case 0x1000:				//opcode == 0x1A08
@@ -214,6 +223,11 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 		case 0xA000:
 			I = opcode & 0x0FFF;
 			break;
+		case 0xB000:
+			PC = V[0] + (opcode & 0x0FFF);
+			break;
+		case 0xC000:
+			V[(opcode & 0x0F00) >> 8] = (rand() % (255 + 1)) & (opcode & 0x00FF);
 		case 0xE000:
 			switch (opcode & 0x00FF)
 			{
@@ -240,6 +254,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			switch (opcode & 0x00FF)
 			{
 			case 0x0007:
+				V[(opcode & 0x0F00) >> 8] = delay_timer;
 				break;
 			case 0x000A:
 				while (!(keypad[0] || keypad[1] || keypad[2] || keypad[3] || keypad[4] || keypad[5] || keypad[6] || keypad[7] || keypad[8]
@@ -257,24 +272,38 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 				}
 				break;
 			case 0x0015:
+				delay_timer = V[(opcode & 0x0F00) >> 8];
 				break;
 			case 0x00018:
+				sound_timer = V[(opcode & 0x0F00) >> 8];
 				break;
 			case 0x001E:
+				I += (V[(opcode & 0x0F00) >> 8]);
 				break;
 			case 0x00029:
+
 				break;
 			case 0x0033:
+
 				break;
-			case 0x00055:
+			case 0x0055:
+				for (int i = 0; i <= (opcode & 0x0F00) >> 8;i++)
+				{
+					memory[I + i] = V[i];
+				}
 				break;
-			case 0x00065:
+			case 0x0065:
+				for (int i = 0; i <= (opcode & 0x0F00) >> 8; i++)
+				{
+					V[i] = I + i;
+				}
 				break;
 			default:
 				break;
 			}
 			step_PC();
 			break;
+			
 
 		default:
 			step_PC();
