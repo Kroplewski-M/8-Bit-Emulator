@@ -30,13 +30,14 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 	void Valmac::initialize()
 	{
 		// Initialize registers and memory once
-		PC = 0x200;  // Program counter starts at 0x200
+		PC = 0x0200;  // Program counter starts at 0x200
 		opcode = 0;      // Reset current opcode	
 		I = 0;      // Reset index register
 		SP = 0;      // Reset stack pointer
 
 		// Clear display	
 		window.clear(sf::Color(0,0,0,255));
+		system("CLS");
 		// Clear stack
 		memset(stack, 0, sizeof(stack));
 		// Clear registers V0-VF
@@ -55,8 +56,11 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 
 	bool Valmac::load_program(uint16_t* pProgram, size_t bufferSize)
 	{
-		//Read a program from a file
-		std::memcpy(memory + PC, pProgram, bufferSize * 2);
+	for(int i = 0; i < (sizeof(pProgram) / sizeof(uint16_t)); i++)
+	{
+		memory[0x0200 + 2 * i] = (unsigned char)pProgram[i];
+		memory[0x0200 + 2 * i + 1] = unsigned char(pProgram[i] >>8);
+	}
 
 		return true;
 	}
@@ -64,7 +68,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 	uint16_t Valmac::getProgramOpcode()
 	{
 		_ASSERT((PC & 1) == 0);  //PC is not 0DD
-		_ASSERT((PC <= MEMORY_SIZE - sizeof(opcode))); //PC is within memory
+		_ASSERT(PC >= 0x0200); //PC is within memory
 
 		uint16_t l_opcode = memory[PC + 1] << 8 | memory[PC];
 		return l_opcode;
@@ -91,6 +95,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			{
 				std::cout << "Doing Nothing\n ";
 				step_PC();
+				break;
 			}
 			else if ((opcode & 0x00FF) == 0x00EE)
 			{
@@ -103,10 +108,13 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			else if ((opcode & 0x00FF) == 0x00FF)
 			{
 				g_bRunning = false;
+				break;
 			}
 			else if ((opcode & 0x00F0) == 0x00E0)
 			{
 				window.clear(sf::Color(0, 0, 0, 255));
+				system("CLS");
+				break;
 			}
 			break;
 		case 0x1000:				//opcode == 0x1A08
@@ -228,6 +236,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			break;
 		case 0xC000:
 			V[(opcode & 0x0F00) >> 8] = (rand() % (255 + 1)) & (opcode & 0x00FF);
+			std::cout << "Random set\n";
 		case 0xE000:
 			switch (opcode & 0x00FF)
 			{
@@ -406,7 +415,10 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 		else
 			keypad[10] = 0;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::B))
+		{
+			KeyCount++;
 			keypad[11] = 1;
+		}
 		else
 			keypad[11] = 0;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
@@ -439,16 +451,12 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			keypad[15] = 0;
 	}
 
-	uint16_t MasterMind[10] =
+	uint16_t MasterMind[3] =
 	{
-		0xF40A,
-		0xF000,
-		0xE4A1,
-		0x1202,
-		0x0000,
-		0x0000,
-		0x0000,
-		0x0000,
-		0x0000,
-		0x0000
+		//TEST01
+		0xFF18,
+		0xC208,
+		0xC308
 	};
+
+	

@@ -9,16 +9,17 @@ int main(int argc, char** argv)
 	Valmac myValmac;
 	myValmac.initialize();
 	//test program 1
-	myValmac.load_program(myValmac.MasterMind, sizeof(myValmac.MasterMind));
+	myValmac.load_program(myValmac.MasterMind, 3 );
 
 	int i = 0;
-	while (myValmac.g_bRunning)
-	{
-		myValmac.emulateCycle();
-		myValmac.SampleInput();
-		i++;
-		myValmac.g_bRunning = i < 10;
-	}
+	
+		while (myValmac.g_bRunning)
+		{
+			myValmac.emulateCycle();
+			myValmac.SampleInput();
+			i++;
+			myValmac.g_bRunning = i < 3;
+		}
 
 
 	std::cout << "V[0] exit code was: " << myValmac.V[0] << std::endl;

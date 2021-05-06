@@ -39,7 +39,13 @@ public:
 
 	uint16_t stack[STACK_SIZE];
 	uint16_t SP;
-	uint16_t MasterMind[10];
+	uint16_t MasterMind[3]
+	{
+		//TEST01
+		0xFF18,
+		0xC208,
+		0xC308
+	};
 
 
 	uint8_t keypad[16];
