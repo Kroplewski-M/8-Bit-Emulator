@@ -1,3 +1,5 @@
-﻿  Valmac.cpp
-C:\Users\user\source\repos\Valmac\Valmac\Valmac.cpp(279,37): warning C4267: '=': conversion from 'size_t' to 'uint8_t', possible loss of data
+﻿  Main.cpp
+  Valmac.cpp
+C:\Users\user\source\repos\Valmac\Valmac\Valmac.cpp(289,37): warning C4267: '=': conversion from 'size_t' to 'uint8_t', possible loss of data
+  Generating Code...
   Valmac.vcxproj -> C:\Users\user\source\repos\Valmac\x64\Debug\Valmac.exe

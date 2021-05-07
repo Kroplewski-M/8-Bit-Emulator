@@ -85,7 +85,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 		// Fetch Opcode
 		opcode = getProgramOpcode();
 
-		//std::cout << "0x" << std::hex << opcode << std::endl;
+		std::cout << "0x" << std::hex << opcode << std::endl;
 
 		// Decode Opcode
 		switch (opcode & 0xF000)
@@ -114,6 +114,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			{
 				window.clear(sf::Color(0, 0, 0, 255));
 				system("CLS");
+				std::cout << "Cleared screen\n";
 				break;
 			}
 			break;
@@ -121,6 +122,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			PC = opcode & 0xFFF;	//PC == 0x0A08 
 			break;
 		case 0x2000:
+			std::cout << "Called Subroutine at NNN\n";
 			stack[SP] = PC;
 			SP++;
 			PC = (opcode & 0x0FFF);
@@ -132,6 +134,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 				step_PC();
 			}
 			else
+				std::cout << "stepped PC \n";
 				step_PC();
 			break;
 		case 0x4000:
@@ -153,6 +156,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 				step_PC();
 			break;
 		case 0x6000:
+			std::cout << "Setting V\n";
 			V[(opcode & 0x0F00) >> 8] = (opcode & 0x00FF);
 			step_PC();
 			break;
@@ -226,17 +230,22 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 				step_PC();
 			}
 			else
+			{
+				std::cout << "Step PC \n";
 				step_PC();
+			}
 			break;
 		case 0xA000:
 			I = opcode & 0x0FFF;
+			std::cout << "setting I\n";
 			break;
 		case 0xB000:
+			std::cout << "Setting PC\n";
 			PC = V[0] + (opcode & 0x0FFF);
 			break;
 		case 0xC000:
 			V[(opcode & 0x0F00) >> 8] = (rand() % (255 + 1)) & (opcode & 0x00FF);
-			std::cout << "Random set\n";
+			std::cout << "Random set \n";
 		case 0xE000:
 			switch (opcode & 0x00FF)
 			{
@@ -244,6 +253,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 				if (keypad[V[(opcode & 0x0F00) >> 8]])
 				{
 					step_PC();
+					std::cout << "Step PC \n";
 				}
 				break;
 			case 0x00A1:
@@ -263,6 +273,7 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 			switch (opcode & 0x00FF)
 			{
 			case 0x0007:
+				std::cout << "Set V to delay time\n";
 				V[(opcode & 0x0F00) >> 8] = delay_timer;
 				break;
 			case 0x000A:
@@ -281,12 +292,15 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 				}
 				break;
 			case 0x0015:
+				std::cout << "Setting delay timer\n";
 				delay_timer = V[(opcode & 0x0F00) >> 8];
 				break;
-			case 0x00018:
+			case 0x0018:
+				std::cout << "Setting sound timer\n";
 				sound_timer = V[(opcode & 0x0F00) >> 8];
 				break;
 			case 0x001E:
+				std::cout << "Setting index\n";
 				I += (V[(opcode & 0x0F00) >> 8]);
 				break;
 			case 0x00029:
@@ -296,12 +310,14 @@ unsigned char Valmac::get_mem(unsigned int p_adress)
 
 				break;
 			case 0x0055:
+				std::cout << "reg_dump\n";
 				for (int i = 0; i <= (opcode & 0x0F00) >> 8;i++)
 				{
 					memory[I + i] = V[i];
 				}
 				break;
 			case 0x0065:
+				std::cout << "reg_load\n";
 				for (int i = 0; i <= (opcode & 0x0F00) >> 8; i++)
 				{
 					V[i] = I + i;
